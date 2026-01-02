@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Students · AI Face Attendance{% endblock %}
+
+{% block body %}
+<div class="shell">
+    <header class="navbar-glass">
+        <div class="nav-title">
+            <span>👨‍🎓</span>
+            <span>Manage Students</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main class="main-grid" style="grid-template-columns: 2fr 3fr;">
+        <!-- Add New Student -->
+        <section class="card-section">
+            <h2 class="section-title">Add New Student</h2>
+
+            {% if error %}
+            <p style="color:#dc2626; margin-top:4px; font-size:13px;">
+                {{ error }}
+            </p>
+            {% endif %}
+
+            <form method="POST" class="mt-3">
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="name"
+                           placeholder="Full name"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="admission_no"
+                           placeholder="Admission number"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="phone"
+                           placeholder="Phone number">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="branch"
+                           placeholder="Branch (CSE, AIML, AIDS, ECE, MECH...)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="degree_type"
+                           placeholder="Degree type (B.Tech, M.Tech, ...)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="sem"
+                           placeholder="Semester (e.g. 8)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="email"
+                           name="email"
+                           placeholder="Email (unique for each student)"
+                           required>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    💾 Save Student
+                </button>
+            </form>
+        </section>
+
+        <!-- Student List with branch filter tabs -->
+        <section class="card-section">
+            <h2 class="section-title">Student List</h2>
+
+            <div class="branch-tabs" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                {% set b = current_branch %}
+                <a href="{{ url_for('students_page', branch='CSE') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px; font-size:12px;{% if b == 'CSE' %} background:var(--accent);color:#fff;{% endif %}">
+                   CSE
+                </a>
+                <a href="{{ url_for('students_page', branch='AIML') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px; font-size:12px;{% if b == 'AIML' %} background:var(--accent);color:#fff;{% endif %}">
+                   AIML
+                </a>
+                <a href="{{ url_for('students_page', branch='AIDS') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px; font-size:12px;{% if b == 'AIDS' %} background:var(--accent);color:#fff;{% endif %}">
+                   AIDS
+                </a>
+                <a href="{{ url_for('students_page', branch='ECE') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px; font-size:12px;{% if b == 'ECE' %} background:var(--accent);color:#fff;{% endif %}">
+                   ECE
+                </a>
+                <a href="{{ url_for('students_page', branch='MECH') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px; font-size:12px;{% if b == 'MECH' %} background:var(--accent);color:#fff;{% endif %}">
+                   MECH
+                </a>
+            </div>
+
+            <div class="student-list mt-2">
+                {% if students %}
+                    {% for student in students %}
+                    <div class="student-row">
+                        <div>
+                            <div>{{ student.name }}</div>
+                            <div class="student-meta">
+                                Adm: {{ student.admission_no }} ·
+                                {{ student.branch or 'Branch' }} ·
+                                {{ student.degree_type or 'Degree' }} ·
+                                Sem: {{ student.semester or 'N/A' }} ·
+                                {{ student.phone or 'No phone' }} ·
+                                {{ student.email }}
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <!-- Edit -->
+                            <a href="{{ url_for('edit_student', student_id=student._id|string) }}"
+                               class="btn-pill"
+                               style="padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                               ✏️ Edit
+                            </a>
+
+                            <!-- Delete -->
+                            <form action="{{ url_for('delete_student', student_id=student._id|string, branch=current_branch) }}"
+                                  method="POST"
+                                  onsubmit="return confirm('Delete {{ student.name }}? All data will be lost.');"
+                                  style="margin:0;">
+                                <button type="submit"
+                                        class="btn-pill"
+                                        style="padding:6px 10px;font-size:12px;background:#dc2626;color:#fff;">
+                                    🗑 Delete
+                                </button>
+                            </form>
+
+                            <!-- Enroll status -->
+                            {% if student.face_enrolled %}
+                                <span class="tag-success" style="padding:6px 10px;font-size:12px;">✅ Enrolled</span>
+                            {% else %}
+                                <a href="{{ url_for('enroll', student_id=student._id|string) }}"
+                                   class="btn-pill"
+                                   style="padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#10b981,#34d399);">
+                                   📷 Enroll Face
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="mt-3" style="color:var(--text-sub);text-align:center;padding:2rem;">
+                    No students found for <strong>"{{ current_branch }}"</strong>.<br>
+                    Add students above or try a different branch.
+                </p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

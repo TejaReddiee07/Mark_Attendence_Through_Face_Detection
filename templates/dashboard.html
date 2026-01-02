@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · AI Face Attendance{% endblock %}
+
+{% block body %}
+<div class="shell">
+    <header class="navbar-glass">
+        <div class="nav-title">
+            <span>📊</span>
+            <span>AI Face Attendance · Dashboard</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </header>
+
+    <main class="main-grid">
+        <section class="card-section">
+            <h2 class="section-title">Today’s Overview</h2>
+            <div class="stats-grid mt-2">
+                <div class="stat-card">
+                    <div class="stat-label">Total Students</div>
+                    <div class="stat-value"
+                         data-counter="total-students"
+                         data-target="{{ total_students }}">
+                        {{ total_students }}
+                    </div>
+                    <div class="stat-pill">All departments</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Today’s Attendance</div>
+                    <div class="stat-value"
+                         data-counter="today-attendance"
+                         data-target="{{ today_attendance }}">
+                        {{ today_attendance }}
+                    </div>
+                    <div class="stat-pill">Live count</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Recognition Accuracy</div>
+                    <div class="stat-value"
+                         data-counter="accuracy"
+                         data-target="98">
+                        98
+                    </div>
+                    <div class="stat-pill">Model</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">Average Response Time</div>
+                    <div class="stat-value">0.8s</div>
+                    <div class="stat-pill">Realtime</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card-section">
+            <h2 class="section-title">Quick Actions</h2>
+            <div class="mt-3 text-center">
+                <a href="{{ url_for('students_page') }}" class="btn-pill">
+                    👨‍🎓 Manage Students
+                </a>
+                <a href="{{ url_for('attendance_page') }}" class="btn-pill"
+                   style="background:linear-gradient(135deg,#f97316,#facc15);">
+                    📜 View Attendance
+                </a>
+
+                <button id="attendance-btn"
+                        type="button"
+                        class="btn-pill"
+                        style="background:linear-gradient(135deg,#22c55e,#4ade80);margin-top:12px;"
+                        onclick="startAttendance()">
+                    ✅ Mark Attendance (Face)
+                </button>
+                <p id="takeAttendanceStatus" class="mt-2 text-center"
+                   style="color:var(--text-sub);font-size:13px;"></p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+async function startAttendance() {
+    const btn = document.getElementById('attendance-btn');
+    const status = document.getElementById('takeAttendanceStatus');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Taking attendance...';
+    status.textContent = 'Opening camera and recognizing faces...';
+
+    try {
+        const res = await fetch('/take-attendance', {
+            method: 'POST'
+        });
+
+        let data;
+        try {
+            data = await res.json();
+        } catch (e) {
+            status.textContent = '❌ Invalid response from server (status ' + res.status + ').';
+            console.error('JSON parse error', e);
+            return;
+        }
+
+        if (!res.ok) {
+            status.textContent = '❌ ' + (data.msg || ('HTTP ' + res.status));
+            return;
+        }
+
+        if (data.success) {
+            status.textContent = '✅ ' + data.msg;
+        } else {
+            status.textContent = '❌ ' + data.msg;
+        }
+    } catch (err) {
+        status.textContent = '❌ Error contacting server (network).';
+        console.error('Fetch error', err);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ Mark Attendance (Face)';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Reports · AI Face Attendance{% endblock %}
+
+{% block body %}
+<div class="shell">
+    <header class="navbar-glass">
+        <div class="nav-title">
+            <span>📈</span>
+            <span>Analytics & Reports</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main class="main-grid">
+        <section class="card-section">
+            <h2 class="section-title">Summary</h2>
+            <p class="mt-2" style="color:var(--text-sub);">
+                This section can show monthly attendance percentage, top present
+                students, and departmental performance. You can extend it later
+                with charts (Chart.js, etc.).
+            </p>
+        </section>
+
+        <section class="card-section">
+            <h2 class="section-title">Export</h2>
+            <p class="mt-2" style="color:var(--text-sub);">
+                Add buttons here to export CSV / Excel reports from your
+                attendance table using Flask routes.
+            </p>
+        </section>
+    </main>
+</div>
+{% endblock %}

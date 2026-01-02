@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Edit Student · {{ student.name }}{% endblock %}
+
+{% block body %}
+<div class="shell">
+    <header class="navbar-glass">
+        <div class="nav-title">
+            <span>✏️</span>
+            <span>Edit Student · {{ student.name }}</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('students_page') }}">← Back to Students</a>
+        </div>
+    </header>
+
+    <main class="main-grid" style="grid-template-columns: 1fr;">
+        <section class="card-section">
+            <h2 class="section-title">Update Details</h2>
+            <form method="POST" class="mt-3">
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="name"
+                           value="{{ student.name }}"
+                           placeholder="Full name"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="admission_no"
+                           value="{{ student.admission_no }}"
+                           placeholder="Admission number"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="phone"
+                           value="{{ student.phone or '' }}"
+                           placeholder="Phone number">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="branch"
+                           value="{{ student.branch or '' }}"
+                           placeholder="Branch (e.g. CSE)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="specialization"
+                           value="{{ student.specialization or '' }}"
+                           placeholder="Specialization (e.g. AI & ML)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="degree_type"
+                           value="{{ student.degree_type or '' }}"
+                           placeholder="Degree type (B.Tech, M.Tech, BSc, ...)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="text"
+                           name="sem"
+                           value="{{ student.semester or '' }}"
+                           placeholder="Semester (e.g. 3rd)">
+                </div>
+
+                <div class="form-group">
+                    <input class="input-field"
+                           type="email"
+                           name="email"
+                           value="{{ student.email }}"
+                           placeholder="Email"
+                           required>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    💾 Save Changes
+                </button>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

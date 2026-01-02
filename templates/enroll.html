@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Enroll Face · {{ student.name }}{% endblock %}
+
+{% block body %}
+<div class="shell">
+    <header class="navbar-glass">
+        <div class="nav-title">
+            <span>📷</span>
+            <span>Enroll Face: {{ student.name }}</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('students_page') }}">Back to Students</a>
+        </div>
+    </header>
+
+    <main class="main-grid" style="grid-template-columns: 2fr 3fr;">
+        <!-- Student Details & Progress -->
+        <section class="card-section">
+            <h2 class="section-title">Student Information</h2>
+            <div class="mt-3 p-3" style="background:var(--glass-bg);border-radius:12px;">
+                <div style="font-size:1.2em;font-weight:600;margin-bottom:8px;">
+                    {{ student.name }}
+                </div>
+                <div style="color:var(--text-sub);line-height:1.4;">
+                    <strong>ID:</strong> {{ student.admission_no }}<br>
+                    <strong>Branch:</strong> {{ student.branch or student.department or 'N/A' }}<br>
+                    <strong>Semester:</strong> {{ student.semester or 'N/A' }}<br>
+                    <strong>Email:</strong> {{ student.email }}
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-shell mt-4">
+                <div class="progress-label">
+                    <span id="progressText">0 / 100 images</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div id="enrollProgressBar" class="progress-fill" style="width:0%"></div>
+                </div>
+                <p id="enrollStatus" class="mt-3 text-center" style="color:var(--text-sub);font-size:14px;">
+                    Click "Start Capture" → Look straight at camera → Rotate head slightly<br>
+                    <small>100 diverse angles = better recognition accuracy</small>
+                </p>
+            </div>
+
+            <!-- Controls -->
+            <div style="display:flex;gap:12px;margin-top:24px;">
+                <button id="enrollStartBtn" class="btn-primary" style="flex:1;padding:14px 20px;font-size:16px;">
+                    ▶️ Start Face Capture (100 images)
+                </button>
+                <button id="enrollStopBtn" class="btn-secondary" style="padding:14px 20px;font-size:16px;display:none;">
+                    ⏹ Stop Early
+                </button>
+            </div>
+            <input type="hidden" id="studentId" value="{{ student._id|string }}">
+        </section>
+
+        <!-- Instructions -->
+        <section class="card-section">
+            <h2 class="section-title">📋 How to Enroll</h2>
+            <ol style="color:var(--text-sub);line-height:1.6;padding-left:20px;">
+                <li>Good lighting, face straight-on.</li>
+                <li>Click "Start Capture" → <strong>camera window opens</strong>.</li>
+                <li>Capture runs ~1–2 minutes or press 'q' to quit early.</li>
+                <li>Model auto-trains → student marked "Enrolled ✅".</li>
+                <!-- FIX: remove non-existent take_attendance_page endpoint -->
+                <li>Later, use the Take Attendance button on the dashboard.</li>
+            </ol>
+            <div class="mt-3 p-3" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;">
+                <strong>💡 Pro Tip:</strong> Ask student to turn head left/right/up/down during capture
+                for 360° recognition.
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- JavaScript for Progress & AJAX -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startBtn = document.getElementById('enrollStartBtn');
+    const stopBtn = document.getElementById('enrollStopBtn');
+    const progressBar = document.getElementById('enrollProgressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+    const statusText = document.getElementById('enrollStatus');
+    const studentId = document.getElementById('studentId').value;
+
+    let pollInterval;
+
+    startBtn.addEventListener('click', async function() {
+        startBtn.disabled = true;
+        startBtn.textContent = '🚀 Capturing...';
+        stopBtn.style.display = 'block';
+        statusText.innerHTML = 'Camera window should open now. Stand by...';
+
+        try {
+            const response = await fetch(`/enroll/capture/${studentId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                statusText.innerHTML = `
+                    ✅ ${result.msg}<br>
+                    <small>Model ready! You can now use Take Attendance.</small>
+                `;
+                progressBar.style.width = '100%';
+                progressText.textContent = '100 / 100';
+                progressPercent.textContent = '100%';
+            } else {
+                statusText.textContent = `❌ ${result.msg}`;
+                startBtn.disabled = false;
+                startBtn.textContent = '▶️ Retry Capture';
+            }
+        } catch (error) {
+            statusText.textContent = `Network error: ${error}`;
+            startBtn.disabled = false;
+        }
+
+        startBtn.disabled = false;
+        startBtn.textContent = '✅ Complete! Refresh Students';
+        stopBtn.style.display = 'none';
+    });
+
+    stopBtn.addEventListener('click', function() {
+        alert("Close the camera window manually (press 'q')");
+    });
+
+    // Optional polling if you later add /api/progress/<id> route
+    pollInterval = setInterval(async () => {
+        if (startBtn.disabled) {
+            try {
+                const count = await fetch(`/api/progress/${studentId}`).then(r => r.json());
+                const percent = Math.round((count / 100) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.textContent = `${count} / 100`;
+                progressPercent.textContent = percent + '%';
+            } catch (e) {}
+        }
+    }, 1000);
+});
+</script>
+
+<style>
+.progress-shell { margin: 1rem 0; }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+.progress-track { height: 12px; background: var(--glass-bg); border-radius: 6px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #10b981); transition: width 0.3s ease; }
+.tag-success { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+.tag-warning { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+.btn-primary { background: linear-gradient(135deg, var(--accent), #3b82f6); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+.btn-secondary { background: #6b7280; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; }
+.btn-primary:hover, .btn-secondary:hover { opacity: 0.9; }
+</style>
+{% endblock %}

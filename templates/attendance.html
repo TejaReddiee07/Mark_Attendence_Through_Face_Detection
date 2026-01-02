@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Attendance · AI Face Attendance{% endblock %}
+
+{% block body %}
+<div class="shell">
+    <header class="navbar-glass">
+        <div class="nav-title">
+            <span>📋</span>
+            <span>Attendance Records</span>
+        </div>
+        <div class="nav-actions">
+            <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main class="main-grid" style="grid-template-columns: 1fr;">
+        <section class="card-section">
+            <h2 class="section-title">Recent Attendance</h2>
+
+            <!-- Branch tabs same as students -->
+            <div class="branch-tabs" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                {% set b = current_branch %}
+                <a href="{{ url_for('attendance_page', branch='CSE') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px;font-size:12px;{% if b == 'CSE' %} background:var(--accent);color:#fff;{% endif %}">
+                    CSE
+                </a>
+                <a href="{{ url_for('attendance_page', branch='AIML') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px;font-size:12px;{% if b == 'AIML' %} background:var(--accent);color:#fff;{% endif %}">
+                    AIML
+                </a>
+                <a href="{{ url_for('attendance_page', branch='AIDS') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px;font-size:12px;{% if b == 'AIDS' %} background:var(--accent);color:#fff;{% endif %}">
+                    AIDS
+                </a>
+                <a href="{{ url_for('attendance_page', branch='ECE') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px;font-size:12px;{% if b == 'ECE' %} background:var(--accent);color:#fff;{% endif %}">
+                    ECE
+                </a>
+                <a href="{{ url_for('attendance_page', branch='MECH') }}"
+                   class="btn-pill"
+                   style="padding:6px 10px;font-size:12px;{% if b == 'MECH' %} background:var(--accent);color:#fff;{% endif %}">
+                    MECH
+                </a>
+            </div>
+
+        <div class="student-list mt-3">
+            {% if records %}
+                {% for rec in records %}
+                <div class="card-section"
+                     style="margin-top:10px;padding:12px 14px;border-radius:10px;background:var(--glass-bg);display:flex;justify-content:space-between;align-items:center;">
+                    <!-- Left: main info in box -->
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:15px;">{{ rec.student.name }}</div>
+                        <div style="font-size:13px;color:var(--text-sub);margin-top:6px;line-height:1.6;">
+                            <div><strong>Admission No:</strong> {{ rec.student.admission_no }}</div>
+                            <div><strong>Branch:</strong> {{ rec.student.branch or 'Branch' }}</div>
+                            <div>
+                                <strong>Status:</strong>
+                                {% if rec.status == 'PRESENT' %}
+                                    <span style="background:#10b981;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600;">✅ PRESENT</span>
+                                {% else %}
+                                    <span style="background:#dc2626;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600;">❌ ABSENT</span>
+                                {% endif %}
+                            </div>
+                            <div><strong>Date & Time:</strong> {{ rec.timestamp.strftime('%d-%m-%Y %H:%M:%S') if rec.timestamp else 'N/A' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Right: keep existing button exactly -->
+                    <div style="display:flex; gap:8px; align-items:center;margin-left:12px;">
+                        <form action="{{ url_for('delete_attendance', attendance_id=rec._id|string, branch=current_branch) }}"
+                              method="POST"
+                              onsubmit="return confirm('Delete attendance for {{ rec.student.name }}?');"
+                              style="margin:0;">
+                            <button type="submit"
+                                    class="btn-pill"
+                                    style="padding:6px 10px;font-size:12px;background:#dc2626;color:#fff;white-space:nowrap;">
+                                🗑 Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="mt-3" style="color:var(--text-sub);text-align:center;padding:2rem;">
+                No attendance records for <strong>"{{ current_branch }}"</strong> yet.
+            </p>
+            {% endif %}
+        </div>
+        </section>
+    </main>
+</div>
+{% endblock %}
