@@ -8,7 +8,7 @@ class Config:
 
     # MongoDB configuration (used by Flask-PyMongo in app.py)
     # Local Mongo instance:
-    MONGO_URI = 'mongodb://localhost:27017/face_attendance'
+    MONGO_URI = 'mongodb+srv://TejaReddiee07:7994693055nagateja@cluster0.ylba7.mongodb.net/Mark_Attendence_With_Face'
     # If you later use Atlas, replace with:
     # MONGO_URI = 'mongodb+srv://<user>:<password>@<cluster>/<db>?retryWrites=true&w=majority'
 
